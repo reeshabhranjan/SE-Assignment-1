@@ -36,7 +36,6 @@ int main(int argc, char** argv)
 	int exec_user = st.st_mode & S_IXUSR;
 	int uid_owner = st.st_uid;
 
-	// checking file permissions
 	// checking if owner has the execute permission
 	if (!exec_user)
 	{
@@ -51,15 +50,6 @@ int main(int argc, char** argv)
 
 		if (pid == 0) // child process
 		{
-			// call execvp
-			// char args[argc][100]; // for execvp command
-
-			// for (int i = 1; i < argc; i++)
-			// {
-			// 	strcpy(args[i - 1], argv[i]);
-			// }
-			// strcpy(args[argc - 1], NULL);
-			
 			execvp(command, argv + 1);
 		}
 		else
