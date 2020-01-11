@@ -60,6 +60,7 @@ int main(int argc, char** argv)
 		{
 			wait(NULL); // understand the parameter NULL
 			seteuid(ruid_caller);
+			printf("UID: %d EUID: %d\n", getuid(), geteuid());
 		}
 	}
 
