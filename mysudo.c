@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			waitpid(pid);
+			wait(NULL); // understand the parameter NULL
 			setuid(ruid_caller);	
 		}
 	}
