@@ -7,6 +7,12 @@
 #include<grp.h>
 #include<string.h>
 
+int authenticate()
+{
+
+	return 0;
+}
+
 int main(int argc, char** argv)
 {
 	// checking argument count
@@ -17,13 +23,13 @@ int main(int argc, char** argv)
 	}
 
 	// checking existence of file
-	char *command = argv[1]; // assuming argv[1] contains path
+	char *file_path = argv[1]; // assuming argv[1] contains path
 
-	int file_exists = access(command, F_OK) + 1; // 1 for exists and 0 otherwise
+	int file_exists = access(file_path, F_OK) + 1; // 1 for exists and 0 otherwise
 	if (!file_exists)
 	{
-		printf("Cannot find command.\n");
-		return 0;
+		printf("Cannot find file_path.\n");
+		return 0;	
 	}
 
 	// getting information about the caller
@@ -32,7 +38,7 @@ int main(int argc, char** argv)
 
 	// getting the stat struct and info for the file
 	struct stat st;
-	stat(command, &st);
+	stat(file_path, &st);
 	int exec_user = st.st_mode & S_IXUSR;
 	int uid_owner = st.st_uid;
 
@@ -45,17 +51,18 @@ int main(int argc, char** argv)
 	else
 	{
 		// TODO ask for password
-		setuid(uid_owner);
+		seteuid(uid_owner);
+		printf("UID: %d EUID: %d", getuid(), geteuid());
 		int pid = fork();
 
 		if (pid == 0) // child process
 		{
-			execvp(command, argv + 1);
+			execvp(file_path, argv + 1);
 		}
 		else
 		{
 			wait(NULL); // understand the parameter NULL
-			setuid(ruid_caller);
+			seteuid(ruid_caller);
 		}
 	}
 
