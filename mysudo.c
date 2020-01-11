@@ -7,11 +7,8 @@
 #include<grp.h>
 #include<string.h>
 
-int authenticate()
-{
-
-	return 0;
-}
+// TODO vulnerability: password check
+// TODO vulnerability: SIGKILL handler (to reset euid)
 
 int main(int argc, char** argv)
 {
@@ -52,7 +49,7 @@ int main(int argc, char** argv)
 	{
 		// TODO ask for password
 		seteuid(uid_owner);
-		printf("UID: %d EUID: %d", getuid(), geteuid());
+		printf("UID: %d EUID: %d\n", getuid(), geteuid());
 		int pid = fork();
 
 		if (pid == 0) // child process
