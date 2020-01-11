@@ -80,11 +80,9 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			wait(pid);
+			waitpid(pid);
 			setuid(ruid_caller);	
 		}
-		
-
 	}
 
 	return 0;
