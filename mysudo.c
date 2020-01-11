@@ -30,22 +30,11 @@ int main(int argc, char** argv)
 	int ruid_caller = getuid();
 	int euid_caller = geteuid();
 
-	//*********debugging***********
-	// printf("%d\n", euid_caller);
-	// printf("args length: %d\n", (int)(sizeof(args) / sizeof(args[0])));
-	// return 0;
-	//*********debugging***********
-
 	// getting the stat struct and info for the file
 	struct stat st;
 	stat(command, &st);
 	int exec_user = st.st_mode & S_IXUSR;
-	int exec_group = st.st_mode & S_IXGRP;
-	int exec_other = st.st_mode & S_IXOTH;
-	int setuid_bit = st.st_mode & S_ISUID;
-	int setguid_bit = st.st_mode & S_ISGID;
 	int uid_owner = st.st_uid;
-	int gid_owner = st.st_gid;
 
 	// checking file permissions
 	// checking if owner has the execute permission
@@ -54,34 +43,29 @@ int main(int argc, char** argv)
 		printf("Permission denied. (owner doesn't have execute permission)\n");
 		return 0;
 	}
-
-	if (!setuid_bit)
-	{
-		printf("Permission denied. (file doesn't have a setuid_bit bit set)\n");
-		return 0;
-	}
 	else
 	{
 		// TODO ask for password
-		setuid(0);
+		setuid(uid_owner);
 		int pid = fork();
 
 		if (pid == 0) // child process
 		{
 			// call execvp
-			char args[argc - 2][100]; // for execvp command
+			// char args[argc][100]; // for execvp command
 
-			for (int i = 0; i < argc - 2; i++)
-			{
-				strcpy(args[i], argv[i + 2]);
-			}
+			// for (int i = 1; i < argc; i++)
+			// {
+			// 	strcpy(args[i - 1], argv[i]);
+			// }
+			// strcpy(args[argc - 1], NULL);
 			
-			execvp(command, args);
+			execvp(command, argv + 1);
 		}
 		else
 		{
 			wait(NULL); // understand the parameter NULL
-			setuid(ruid_caller);	
+			setuid(ruid_caller);
 		}
 	}
 
