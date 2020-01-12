@@ -10,5 +10,5 @@
 int main(int argc, char **argv)
 {
     seteuid(0);
-    return 0;    
+    return 0;
 }
