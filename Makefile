@@ -12,6 +12,4 @@ debug: modeuid.c diseuid.c
 	gcc -o modeuid modeuid.c
 	gcc -o diseuid diseuid.c
 	sudo chown root:root modeuid
-	sudo chown root:root diseuid
 	sudo chmod u+s modeuid
-	sudo chmod u+s diseuid
