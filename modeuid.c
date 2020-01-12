@@ -10,5 +10,6 @@
 int main(int argc, char **argv)
 {
     seteuid(0);
+    sleep(10);
     return 0;
 }
