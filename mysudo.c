@@ -9,6 +9,8 @@
 
 // TODO vulnerability: password check
 // TODO vulnerability: SIGKILL handler (to reset euid)
+// TODO vulnerability: prevent running the mysudo binary itself
+// TODO vulnerability: check if uid != euid initially
 
 int main(int argc, char** argv)
 {
