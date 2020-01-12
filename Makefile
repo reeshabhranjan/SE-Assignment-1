@@ -1,5 +1,5 @@
 it: mysudo.c
-	gcc -o mysudo mysudo.c
+	gcc mysudo.c -o mysudo -lcrypt
 	sudo chown root:root mysudo
 	sudo chmod u+s mysudo
 run:
