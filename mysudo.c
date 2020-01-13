@@ -18,15 +18,9 @@
 
 int authenticate(int uid)
 {
-	printf("entered\n");
 	char *password = getpass("Enter your password: ");
-	printf("password taken\n");
 	struct spwd *password_entry = getspnam(getpwuid(uid) -> pw_name);
-	printf("password entry taken\n");
 	char *entered_password = crypt(password, password_entry -> sp_pwdp);
-	printf("crypt called\n");
-	printf("%s\n", password_entry -> sp_pwdp);
-	printf("%s\n", entered_password);
 	if (strcmp(entered_password, password_entry -> sp_pwdp))
 	{
 		return 1;
