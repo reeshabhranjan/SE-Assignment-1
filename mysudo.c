@@ -8,11 +8,13 @@
 #include<string.h>
 #include<shadow.h>
 
-// TODO vulnerability: password check [DOUBT]
-// TODO vulnerability: SIGKILL handler (to reset euid) [DOUBT (happens due to PCB?)]
-// TODO vulnerability: prevent running the mysudo binary itself
-// TODO vulnerability: check if uid != euid initially
-// TODO feature: is mysudo required for running one's own files? [DOUBT]
+// TODO [DOUBT] vulnerability: password check
+// TODO [DOUBT] vulnerability: SIGKILL handler (to reset euid) (happens due to PCB?)
+// TODO         vulnerability: prevent running the mysudo binary itself
+// TODO         vulnerability: check if uid != euid initially
+// TODO [DOUBT] feature: is mysudo required for running one's own files?
+// TODO [DOUBT] feature: smarter search of commands?
+// TODO [DOUBT] feature: need to pass UID too?
 
 int authenticate(int uid)
 {
@@ -32,8 +34,7 @@ int authenticate(int uid)
 	else
 	{
 		return 0;
-	}
-	
+	}	
 }
 
 int main(int argc, char** argv)
@@ -49,7 +50,7 @@ int main(int argc, char** argv)
 	char *file_path = argv[1]; // assuming argv[1] contains path
 
 	int file_exists = access(file_path, F_OK) + 1; // 1 for exists and 0 otherwise
-	if (!file_exists) // TODO [DOUBT (should we handle it smartly for convenience?)]
+	if (!file_exists)
 	{
 		printf("Cannot find file_path.\n");
 		return 0;	
@@ -73,14 +74,6 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		// TODO ask for password [REMOVED ATM.]
-
-		// if (!authenticate(ruid_caller))
-		// {
-		// 	printf("Wrong password, exiting.");
-		// 	return 0;
-		// }
-
 		seteuid(uid_owner);
 		printf("UID: %d EUID: %d\n", getuid(), geteuid());
 		int pid = fork();
@@ -96,6 +89,5 @@ int main(int argc, char** argv)
 			printf("UID: %d EUID: %d\n", getuid(), geteuid());
 		}
 	}
-
 	return 0;
 }
