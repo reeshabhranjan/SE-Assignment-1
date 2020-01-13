@@ -8,11 +8,11 @@
 #include<string.h>
 #include<shadow.h>
 
-// TODO vulnerability: password check
-// TODO vulnerability: SIGKILL handler (to reset euid)
+// TODO vulnerability: password check [DOUBT]
+// TODO vulnerability: SIGKILL handler (to reset euid) [DOUBT (happens due to PCB?)]
 // TODO vulnerability: prevent running the mysudo binary itself
 // TODO vulnerability: check if uid != euid initially
-// TODO feature: is mysudo required for running one's own files?
+// TODO feature: is mysudo required for running one's own files? [DOUBT]
 
 int authenticate(int uid)
 {
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 	char *file_path = argv[1]; // assuming argv[1] contains path
 
 	int file_exists = access(file_path, F_OK) + 1; // 1 for exists and 0 otherwise
-	if (!file_exists)
+	if (!file_exists) // TODO [DOUBT (should we handle it smartly for convenience?)]
 	{
 		printf("Cannot find file_path.\n");
 		return 0;	
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		// TODO ask for password
+		// TODO ask for password [REMOVED ATM.]
 
 		// if (!authenticate(ruid_caller))
 		// {
