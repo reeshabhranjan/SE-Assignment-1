@@ -4,11 +4,13 @@
 #include<sys/types.h>
 #include<sys/wait.h>
 #include<pwd.h>
-#include<grp.h>
+// #include<grp.h>
 #include<string.h>
 #include<shadow.h>
 #include<grp.h>
 #include<stdlib.h>
+#include<limits.h>
+#define GROUP_COUNT_LIMIT 65536
 
 // TODO [DOUBT] vulnerability: password check
 // TODO [DOUBT] vulnerability: SIGKILL handler (to reset euid) (happens due to PCB?)
@@ -63,12 +65,31 @@ int main(int argc, char** argv)
 	int uid_requested = passwd_entry -> pw_uid;
 
 	// obtain the group-membership of the requested user
-	int group_count;
+	int group_count = GROUP_COUNT_LIMIT;
 	// gid_t *groups;
-	// groups = malloc(10 * sizeof(gid_t));
-	gid_t groups[1000];
+	// groups = malloc(1000 * sizeof(gid_t));
+	gid_t groups[GROUP_COUNT_LIMIT];
+	printf("%d\n", NGROUPS_MAX);
 	int gid_requested = getpwuid(uid_requested) -> pw_gid;
-	getgrouplist(username, gid_requested, NULL, &group_count);
+	// getgrouplist(username, gid_requested, groups, &group_count);
+	getgrouplist("reeshabh", 1000, groups, &group_count);
+	printf("%s %d\n", username, gid_requested);
+	int group_member = 0;
+
+	for (int i = 0; i < group_count; i++)
+	{
+		printf("%d ", groups[i]);
+		if (guid_file == groups[i])
+		{
+			group_member = 1;
+			break;
+		}
+	}
+
+	printf("\n");
+	
+	printf("group_member: %d\n", group_member);
+
 	return 0;
 
 	// if runnin as owner, but owner has no execute permissions
