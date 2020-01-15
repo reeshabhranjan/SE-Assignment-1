@@ -64,12 +64,11 @@ int main(int argc, char** argv)
 
 	// obtain the group-membership of the requested user
 	int group_count;
-	gid_t *groups;
-	groups = malloc(10 * sizeof(gid_t));
+	// gid_t *groups;
+	// groups = malloc(10 * sizeof(gid_t));
+	gid_t groups[1000];
 	int gid_requested = getpwuid(uid_requested) -> pw_gid;
-	printf("hello\n");
 	getgrouplist(username, gid_requested, NULL, &group_count);
-	printf("hello\n");
 	return 0;
 
 	// if runnin as owner, but owner has no execute permissions
