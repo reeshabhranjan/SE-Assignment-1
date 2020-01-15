@@ -7,6 +7,8 @@
 #include<grp.h>
 #include<string.h>
 #include<shadow.h>
+#include<grp.h>
+#include<stdlib.h>
 
 // TODO [DOUBT] vulnerability: password check
 // TODO [DOUBT] vulnerability: SIGKILL handler (to reset euid) (happens due to PCB?)
@@ -15,33 +17,31 @@
 // TODO [DOUBT] feature: is mysudo required for running one's own files?
 // TODO [DOUBT] feature: smarter search of commands?
 // TODO [DOUBT] feature: need to pass UID too?
-
-int authenticate(int uid)
-{
-	char *password = getpass("Enter your password: ");
-	struct spwd *password_entry = getspnam(getpwuid(uid) -> pw_name);
-	char *entered_password = crypt(password, password_entry -> sp_pwdp);
-	if (strcmp(entered_password, password_entry -> sp_pwdp))
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}	
-}
+// TODO [DOUBT] size of input, input validation?
+// TODO 		feature: thorough check of file permissions
+// TODO         feature: handle cases for non-logable users
 
 int main(int argc, char** argv)
 {
 	// checking argument count
-	if (argc <= 1) // because argc can be 0 in some cases
+	if (argc <= 2) // because argc can be 0 in some cases
 	{
-		printf("Enter an argument.\n");
+		printf("Please give input as follows:\n");
+		printf("./mysudo [username-to-run-as] [path/to/command]\n");
+		return 0;
+	}
+
+	// check existence of username
+	char *username = argv[1]; // assuming argv[1] contains username
+	struct passwd *passwd_entry = getpwnam(username);
+	if (passwd_entry == NULL)
+	{
+		printf("No such user.\n");
 		return 0;
 	}
 
 	// checking existence of file
-	char *file_path = argv[1]; // assuming argv[1] contains path
+	char *file_path = argv[2]; // assuming argv[2] contains path
 
 	int file_exists = access(file_path, F_OK) + 1; // 1 for exists and 0 otherwise
 	if (!file_exists)
@@ -59,29 +59,50 @@ int main(int argc, char** argv)
 	stat(file_path, &st);
 	int exec_user = st.st_mode & S_IXUSR;
 	int uid_owner = st.st_uid;
+	int guid_file = st.st_gid;
+	int uid_requested = passwd_entry -> pw_uid;
 
-	// checking if owner has the execute permission
-	if (!exec_user)
+	// obtain the group-membership of the requested user
+	int group_count;
+	gid_t *groups;
+	groups = malloc(10 * sizeof(gid_t));
+	int gid_requested = getpwuid(uid_requested) -> pw_gid;
+	printf("hello\n");
+	getgrouplist(username, gid_requested, NULL, &group_count);
+	printf("hello\n");
+	return 0;
+
+	// if runnin as owner, but owner has no execute permissions
+	if (uid_owner == uid_requested)
 	{
-		printf("Permission denied. (owner doesn't have execute permission)\n");
-		return 0;
+		if (!exec_user)
+		{
+			printf("The owner has no execute permissions.\n");
+			return 0;
+		}
+	}
+
+	else
+	{
+		
+	}
+	
+
+
+	// if every check (above) is passed
+	seteuid(uid_owner);
+	printf("UID: %d EUID: %d\n", getuid(), geteuid());
+	int pid = fork();
+
+	if (pid == 0) // child process
+	{
+		execvp(file_path, argv + 2);
 	}
 	else
 	{
-		seteuid(uid_owner);
+		wait(NULL); // understand the parameter NULL
+		seteuid(ruid_caller);
 		printf("UID: %d EUID: %d\n", getuid(), geteuid());
-		int pid = fork();
-
-		if (pid == 0) // child process
-		{
-			execvp(file_path, argv + 1);
-		}
-		else
-		{
-			wait(NULL); // understand the parameter NULL
-			seteuid(ruid_caller);
-			printf("UID: %d EUID: %d\n", getuid(), geteuid());
-		}
 	}
 	return 0;
 }
