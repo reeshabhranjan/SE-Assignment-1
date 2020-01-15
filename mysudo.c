@@ -55,30 +55,28 @@ int main(int argc, char** argv)
 	// getting information about the caller
 	int ruid_caller = getuid();
 	int euid_caller = geteuid();
+	int rguid_caller = getgid();
+	int egeuid_caller = getegid();
 
 	// getting the stat struct and info for the file
 	struct stat st;
 	stat(file_path, &st);
-	int exec_user = st.st_mode & S_IXUSR;
+	int exec_owner = st.st_mode & S_IXUSR;
+	int exec_group = st.st_mode & S_IXGRP;
+	int exec_other = st.st_mode & S_IXOTH;
 	int uid_owner = st.st_uid;
 	int guid_file = st.st_gid;
 	int uid_requested = passwd_entry -> pw_uid;
 
 	// obtain the group-membership of the requested user
 	int group_count = GROUP_COUNT_LIMIT;
-	// gid_t *groups;
-	// groups = malloc(1000 * sizeof(gid_t));
 	gid_t groups[GROUP_COUNT_LIMIT];
-	printf("%d\n", NGROUPS_MAX);
 	int gid_requested = getpwuid(uid_requested) -> pw_gid;
-	// getgrouplist(username, gid_requested, groups, &group_count);
-	getgrouplist("reeshabh", 1000, groups, &group_count);
-	printf("%s %d\n", username, gid_requested);
+	getgrouplist(username, gid_requested, groups, &group_count);
 	int group_member = 0;
 
 	for (int i = 0; i < group_count; i++)
 	{
-		printf("%d ", groups[i]);
 		if (guid_file == groups[i])
 		{
 			group_member = 1;
@@ -86,31 +84,36 @@ int main(int argc, char** argv)
 		}
 	}
 
-	printf("\n");
-	
-	printf("group_member: %d\n", group_member);
-
-	return 0;
-
-	// if runnin as owner, but owner has no execute permissions
+	// if running as owner, but owner has no execute permissions
 	if (uid_owner == uid_requested)
 	{
-		if (!exec_user)
+		if (!exec_owner)
 		{
 			printf("The owner has no execute permissions.\n");
 			return 0;
 		}
 	}
 
-	else
+	// if not the owner, but in group, but group has no execute permissions
+	if (group_member)
 	{
-		
+		if (!exec_group)
+		{
+			printf("The owning group has no execute permissions.\n");
+			return 0;
+		}
 	}
-	
 
+	// if others do not have execute permissions
+	if (!exec_other)
+	{
+		printf("Others do not have execute permissions.\n");
+		return 0;
+	}
 
 	// if every check (above) is passed
-	seteuid(uid_owner);
+	seteuid(uid_requested);
+	setgid(gid_requested);
 	printf("UID: %d EUID: %d\n", getuid(), geteuid());
 	int pid = fork();
 
@@ -122,6 +125,7 @@ int main(int argc, char** argv)
 	{
 		wait(NULL); // understand the parameter NULL
 		seteuid(ruid_caller);
+		setgid(rguid_caller);
 		printf("UID: %d EUID: %d\n", getuid(), geteuid());
 	}
 	return 0;
