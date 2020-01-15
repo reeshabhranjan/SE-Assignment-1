@@ -84,28 +84,33 @@ int main(int argc, char** argv)
 		}
 	}
 
+	int allowed = 0;
+
 	// if running as owner, but owner has no execute permissions
-	if (uid_owner == uid_requested)
+	if (uid_owner == uid_requested && !allowed)
 	{
 		if (!exec_owner)
 		{
 			printf("The owner has no execute permissions.\n");
 			return 0;
 		}
+		
+		allowed = 1;
 	}
 
 	// if not the owner, but in group, but group has no execute permissions
-	if (group_member)
+	if (group_member && !allowed)
 	{
 		if (!exec_group)
 		{
 			printf("The owning group has no execute permissions.\n");
 			return 0;
 		}
+		allowed = 1;
 	}
 
 	// if others do not have execute permissions
-	if (!exec_other)
+	if (!exec_other && !allowed)
 	{
 		printf("Others do not have execute permissions.\n");
 		return 0;
