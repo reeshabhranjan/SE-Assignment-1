@@ -23,7 +23,8 @@ int euid_caller;
 void sigint_handler(int signal_number)
 {
 	seteuid(euid_caller);
-	printf("Terminating program.");
+	printf("\nTerminating program.\n");
+	printf("UID: %d EUID: %d\n", getuid(), geteuid());
 	exit(EXIT_SUCCESS);
 }
 
