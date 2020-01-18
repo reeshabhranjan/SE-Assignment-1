@@ -19,6 +19,13 @@
 int ruid_caller;
 int euid_caller;
 
+// common instructions
+void print_input_instructions()
+{
+	printf("Please give input as follows:\n");
+	printf("./mysudo [username_to_run_as] [path/to/command --with-arguments]\n");	
+}
+
 // to safely return on termination request
 void sigint_handler(int signal_number)
 {
@@ -34,8 +41,7 @@ int main(int argc, char** argv)
 	// checking argument count
 	if (argc <= 2) // because argc can be 0 in some cases
 	{
-		printf("Please give input as follows:\n");
-		printf("./mysudo [username-to-run-as] [path/to/command]\n");
+		print_input_instructions();
 		return 0;
 	}
 
@@ -46,8 +52,7 @@ int main(int argc, char** argv)
 	if (passwd_entry == NULL)
 	{
 		printf("No such user. Either you didn't provide a username or you provided non existing username.\n");
-		printf("Please give input as follows:\n");
-		printf("./mysudo [username-to-run-as] [path/to/command]\n");
+		print_input_instructions();
 		return 0;
 	}
 
@@ -60,8 +65,7 @@ int main(int argc, char** argv)
 	if (!file_exists)
 	{
 		printf("Cannot find file_path. Please check your input.\n");
-		printf("Please give input as follows:\n");
-		printf("./mysudo [username-to-run-as] [path/to/command]\n");
+		print_input_instructions();
 		return 0;	
 	}
 
