@@ -24,7 +24,7 @@ void sigint_handler(int signal_number)
 {
 	seteuid(euid_caller);
 	printf("Terminating program.");
-	return 0;
+	exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char** argv)
