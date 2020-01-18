@@ -67,6 +67,7 @@ int main(int argc, char** argv)
 	if (pid == 0) // child process
 	{
 		execvp(file_path, argv + 2);
+		printf("Permission denied.\n");
 	}
 	else
 	{
