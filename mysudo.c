@@ -45,7 +45,9 @@ int main(int argc, char** argv)
 	
 	if (passwd_entry == NULL)
 	{
-		printf("No such user.\n");
+		printf("No such user. Either you didn't provide a username or you provided non existing username.\n");
+		printf("Please give input as follows:\n");
+		printf("./mysudo [username-to-run-as] [path/to/command]\n");
 		return 0;
 	}
 
@@ -57,7 +59,9 @@ int main(int argc, char** argv)
 	int file_exists = access(file_path, F_OK) + 1; // 1 for exists and 0 otherwise
 	if (!file_exists)
 	{
-		printf("Cannot find file_path.\n");
+		printf("Cannot find file_path. Please check your input.\n");
+		printf("Please give input as follows:\n");
+		printf("./mysudo [username-to-run-as] [path/to/command]\n");
 		return 0;	
 	}
 

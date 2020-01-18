@@ -7,6 +7,9 @@ run:
 
 clean:
 	rm mysudo
+
+test:
+	echo "hello world!" > debug/message.txt
 	
 debug: mysudo.c
 	gcc -g -o mysudo mysudo.c
