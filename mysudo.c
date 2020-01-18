@@ -85,7 +85,12 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		wait(NULL); // understand the parameter NULL
+		int status;
+		wait(&status); // understand the parameter NULL
+		// if (status > 0)
+		// {
+		// 	printf("\nPermission denied.\n");
+		// }
 		seteuid(ruid_caller);
 		printf("UID: %d EUID: %d\n", getuid(), geteuid());
 	}
