@@ -10,21 +10,26 @@
 #include<grp.h>
 #include<stdlib.h>
 #include<limits.h>
-#define GROUP_COUNT_LIMIT 65536
+#include<signal.h>
 
-// TODO [DOUBT] vulnerability: password check
-// TODO [DOUBT] vulnerability: SIGKILL handler (to reset euid) (happens due to PCB?)
 // TODO         vulnerability: prevent running the mysudo binary itself
 // TODO         vulnerability: check if uid != euid initially
-// TODO [DOUBT] feature: is mysudo required for running one's own files?
-// TODO [DOUBT] feature: smarter search of commands?
-// TODO [DOUBT] feature: need to pass UID too?
-// TODO [DOUBT] size of input, input validation?
-// TODO 		feature: thorough check of file permissions
 // TODO         feature: handle cases for non-logable users
+
+int ruid_caller;
+int euid_caller;
+
+// to safely return on termination request
+void sigint_handler(int signal_number)
+{
+	seteuid(euid_caller);
+	printf("Terminating program.");
+	return 0;
+}
 
 int main(int argc, char** argv)
 {
+	signal(SIGINT, sigint_handler);
 	// checking argument count
 	if (argc <= 2) // because argc can be 0 in some cases
 	{
@@ -56,8 +61,8 @@ int main(int argc, char** argv)
 	}
 
 	// getting information about the caller
-	int ruid_caller = getuid();
-	int euid_caller = geteuid();
+	ruid_caller = getuid();
+	euid_caller = geteuid();
 
 	// if every check (above) is passed
 	seteuid(uid_requested);
