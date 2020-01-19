@@ -1,3 +1,10 @@
+
+/*
+Author: Reeshabh Kumar Ranjan
+Roll number: 2017086
+Course: CSE-352: Security Engineering
+*/
+
 #include<stdio.h>
 #include<unistd.h>
 #include<sys/stat.h>
@@ -12,12 +19,22 @@
 #include<limits.h>
 #include<signal.h>
 
-// TODO         vulnerability: prevent running the mysudo binary itself
-// TODO         vulnerability: check if uid != euid initially
-// TODO         feature: handle cases for non-logable users
-
 int ruid_caller;
 int euid_caller;
+
+void print_changing_euid()
+{
+	printf("Changing EUID...\n");
+	printf("UID: %d EUID: %d\n", getuid(), geteuid());
+	printf("=======================\n\n");
+}
+
+void print_restoring_euid()
+{
+	printf("\n=======================\n");
+	printf("Restoring EUID...\n");
+	printf("UID: %d EUID: %d\n", getuid(), geteuid());	
+}
 
 // common instructions
 void print_input_instructions()
@@ -30,8 +47,8 @@ void print_input_instructions()
 void sigint_handler(int signal_number)
 {
 	seteuid(euid_caller);
+	print_restoring_euid();
 	printf("\nTerminating program.\n");
-	printf("UID: %d EUID: %d\n", getuid(), geteuid());
 	exit(EXIT_SUCCESS);
 }
 
@@ -75,24 +92,21 @@ int main(int argc, char** argv)
 
 	// if every check (above) is passed
 	seteuid(uid_requested);
-	printf("UID: %d EUID: %d\n", getuid(), geteuid());
+	print_changing_euid();
 	int pid = fork();
 
 	if (pid == 0) // child process
 	{
 		execvp(file_path, argv + 2);
-		printf("Permission denied.\n");
+		perror(strcat(file_path, "permission error"));
 	}
 	else
 	{
 		int status;
-		wait(&status); // understand the parameter NULL
-		// if (status > 0)
-		// {
-		// 	printf("\nPermission denied.\n");
-		// }
+		wait(&status);
 		seteuid(ruid_caller);
-		printf("UID: %d EUID: %d\n", getuid(), geteuid());
+		print_restoring_euid();
+		printf("The program: %s ended with return code: %d\n", file_path, status);
 	}
 	return 0;
 }
