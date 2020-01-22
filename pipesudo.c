@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
+#include<unistd.h>
 
 int main(int argc, char **argv)
 {
@@ -21,7 +22,7 @@ int main(int argc, char **argv)
 
     char* command1 = argv[0];
     char* command2 = argv[pipe_position + 1];
-    char** command1_args = (char **)(malloc(sizeof(char*) * (pipe_position)));
+    char** command1_args = (char **)(malloc(sizeof(char*) * (pipe_position + 1)));
     for (int i = 0; i < pipe_position; i++)
     {
         // command1_args[i] = (char *)(malloc(sizeof(char) * (strlen(argv[i]) + 1)));
@@ -29,14 +30,34 @@ int main(int argc, char **argv)
         command1_args[i] = strdup(argv[i]);
     }
 
-    // int arr_size = sizeof(command1_args) / sizeof(command1_args[0]);
-    int arr_size = pipe_position;
+    command1_args[pipe_position] = NULL;
 
-    for (int i = 0; i < arr_size; i++)
+    int fd[2]; // 0 is the reading end and 1 is the writing end
+    // in fd table, 0 is stdin, 1 is stdout, 2 is stderr
+
+    if (pipe(fd) == -1)
     {
-        printf("%s ", command1_args[i]);
+        perror("internal failure!\n");
     }
 
-    printf("\n");
+    if (fork() == 0)
+    {
+        // first close stdout, close the reading end of the pipe 
+        // and duplicate the writing end of the pipe
+        close(1);
+        dup(fd[1]);
+        close(fd[0]);
+        execv(command1_args[0], command1_args);
+    }
+    else
+    {
+        // close stdin, close writing end of the pipe
+        // and duplicate the reading end of the pipe
+        close(0);
+        dup(fd[0]);
+        close(fd[1]);
+        execv(argv[pipe_position + 1], argv + pipe_position + 1);
+    }
+    
     
 }
