@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < argc - pipe_position; i++)
     {
-        printf("%s ", command1_args[i]);
+        printf("%s ", command2_args[i]);
     }
     printf("\n");
     
