@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/pipesudo",
-            "args": ["ab", "c", "|", "d", "e"],
+            "args": ["ls", "|", "wc"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

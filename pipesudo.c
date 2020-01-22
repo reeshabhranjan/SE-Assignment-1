@@ -46,7 +46,6 @@ int main(int argc, char **argv)
         printf("%s ", command2_args[i]);
     }
     printf("\n");
-    
 
     int fd[2];
 
@@ -77,7 +76,5 @@ int main(int argc, char **argv)
         // char* arguments[] = {"/usr/bin/wc", "-l"};
         // execvp(arguments[0], arguments);
         execvp(command2_args[0], command2_args);
-    }
-    
-    
+    }    
 }
