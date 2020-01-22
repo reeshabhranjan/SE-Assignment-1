@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     if (pipe(fd) == -1)
     {
-        perror("internal failure!\n");
+        perror("internal failure");
     }
 
     if (fork() == 0)
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
         close(1);
         dup(fd[1]);
         close(fd[0]);
-        execv(command1_args[0], command1_args);
+        execvp(command1_args[0], command1_args);
     }
     else
     {
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
         close(0);
         dup(fd[0]);
         close(fd[1]);
-        execv(argv[pipe_position + 1], argv + pipe_position + 1);
+        execvp(argv[pipe_position + 1], argv + pipe_position + 1);
     }
     
     
