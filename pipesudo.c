@@ -20,30 +20,30 @@ int main(int argc, char **argv)
 
     // OK
 
-    char** command1_args = (char **)(malloc(sizeof(char*) * (pipe_position + 1)));
+    char** command1_args = (char **)(malloc(sizeof(char*) * (pipe_position)));
     char** command2_args = (char **)(malloc(sizeof(char*) * (argc - pipe_position)));
     for (int i = 1; i < pipe_position; i++)
     {
-        command1_args[i] = strdup(argv[i]);
+        command1_args[i - 1] = strdup(argv[i]);
     }
 
     for (int i = pipe_position + 1; i < argc; i++)
     {
-        command2_args[i] = strdup(argv[i]);
+        command2_args[i - pipe_position - 1] = strdup(argv[i]);
     }
     
-    command1_args[pipe_position] = NULL;
+    command1_args[pipe_position - 1] = NULL;
     command2_args[argc - pipe_position - 1] = NULL;
 
     for (int i = 0; i < pipe_position + 1; i++)
     {
-        printf("%s ", command1_args[i]);
+        printf("|%s|", command1_args[i]);
     }
     printf("\n");
 
     for (int i = 0; i < argc - pipe_position; i++)
     {
-        printf("%s ", command2_args[i]);
+        printf("|%s|", command2_args[i]);
     }
     printf("\n");
 
