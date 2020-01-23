@@ -54,7 +54,7 @@ void sigint_handler(int signal_number)
 	exit(EXIT_SUCCESS);
 }
 
-void extract_commands(int argc, char** argv, char** command1, char** command2)
+void extract_commands(int argc, char** argv, char*** command1, char*** command2)
 {
     int pipe_position = -1;
     for (int i = 0; i < argc; i++)
@@ -70,35 +70,35 @@ void extract_commands(int argc, char** argv, char** command1, char** command2)
 
 	if (pipe_position == -1)
 	{
-		command1 = NULL;
+		*command1 = NULL;
 	}
 
 	else
 	{
 		// TODO handle this if -u flag is provided
-		command1 = (char **)(malloc(sizeof(char*) * (pipe_position - 1)));
+		*command1 = (char **)(malloc(sizeof(char*) * (pipe_position - 1)));
 		for (int i = 2; i < pipe_position; i++)
 		{
-			command1[i - 2] = strdup(argv[i]);
+			*command1[i - 2] = strdup(argv[i]);
 		}
-		command1[pipe_position - 2] = NULL;
+		*command1[pipe_position - 2] = NULL;
 	}
 
 	// setting up command2 argument array
 
 	if (pipe_position == -1)
 	{
-		command2 = argv + 2;
+		*command2 = argv + 2;
 	}
 
 	else
 	{
-		command2 = (char **)(malloc(sizeof(char*) * (argc - pipe_position)));
+		*command2 = (char **)(malloc(sizeof(char*) * (argc - pipe_position)));
 		for (int i = pipe_position + 1; i < argc; i++)
 		{
-			command2[i - pipe_position - 1] = strdup(argv[i]);
+			*command2[i - pipe_position - 1] = strdup(argv[i]);
 		}
-		command2[argc - pipe_position - 1] = NULL;
+		*command2[argc - pipe_position - 1] = NULL;
 	}
 }
 
@@ -126,11 +126,13 @@ int main(int argc, char** argv)
 	int uid_requested = passwd_entry -> pw_uid;
 
 	// extracting commands if pipeline is present: ./mysudo reeshabh command1 | command2
-	char** child_command; 
-	char** parent_command;
-	extract_commands(argc, argv, child_command, parent_command);
+	char** child_command = NULL; 
+	char** parent_command = NULL;
+	extract_commands(argc, argv, &child_command, &parent_command);
 
 	int pipe_operation = child_command != NULL;
+
+	printf("parent_command: %d\n", (parent_command == NULL));
 
 	// checking existence of file
 	char *file_path_parent = parent_command[0]; // assuming argv[2] contains path
