@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 	if (argc <= 2) // because argc can be 0 in some cases
 	{
 		print_input_instructions();
-		return 0;
+		return 1;
 	}
 
 	// check existence of username
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 	{
 		printf("No such user. Either you didn't provide a username or you provided non existing username.\n");
 		print_input_instructions();
-		return 0;
+		return 1;
 	}
 
 	int uid_requested = passwd_entry -> pw_uid;
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 	{
 		printf("Cannot find file_path: \"%s\" Please check your input.\n", file_path_parent);
 		print_input_instructions();
-		return 0;	
+		return 1;	
 	}
 
 	if (pipe_operation)
@@ -153,7 +153,7 @@ int main(int argc, char** argv)
 		{
 			printf("Cannot find file_path: \"%s\" Please check your input.\n", file_path_child);
 			print_input_instructions();
-			return 0;
+			return 1;
 		}
 	}
 
@@ -166,6 +166,9 @@ int main(int argc, char** argv)
 		int file_exec_permission_owner_parent = st.st_mode & S_IXUSR;
 		int file_exec_permission_group_parent = st.st_mode & S_IXGRP;
 		int file_exec_permission_other_parent = st.st_mode & S_IXOTH;
+		int file_write_permission_owner_parent = st.st_mode & S_IWUSR;
+		int file_write_permission_group_parent = st.st_mode & S_IWGRP;
+		int file_write_permission_other_parent = st.st_mode & S_IWOTH;
 		int file_group_id_parent = st.st_gid;
 		int file_owner_uid_parent = st.st_uid;
 
@@ -196,27 +199,32 @@ int main(int argc, char** argv)
 		// if running as owner but no execute permissions
 		if (file_owner_uid_parent == uid_sudo_user)
 		{
-			if (!file_exec_permission_owner_parent)
+			if (!file_exec_permission_owner_parent || !file_write_permission_owner_parent)
 			{
-				printf("Requested user is the owner, but no execute permissions!\n");
+				printf("Requested user is the owner, but no execute permissions or no write permissions!\n");
 				return 1;
 			}
 		}
-
+		
+		// if group member but no execute permissions
 		else if (group_member)
 		{
-			if (!file_exec_permission_group_parent)
+			if (!file_exec_permission_group_parent || !file_write_permission_group_parent)
 			{
-				printf("Requested user is in the group, but group has not execute permissions!\n");
+				printf("Requested user is in the group, but group has not execute permissions or no write permissions!\n");
 				return 1;
 			}
 		}
 
-		else if (!file_exec_permission_other_parent)
+		// if no others' execute permissions
+		else if (!file_exec_permission_other_parent || !file_write_permission_other_parent)
 		{
-			printf("Other users do not have execute permissions!\n");
+			printf("Other users do not have execute permissions or no write permissions!\n");
 			return 1;
 		}
+
+		// check write permissions
+
 	}
 
 	// getting information about the caller
@@ -230,8 +238,41 @@ int main(int argc, char** argv)
 
 	if (pid == 0) // child process
 	{
-		execvp(file_path_parent, argv + 2);
-		perror(strcat(file_path_parent, "permission error"));
+		if (!pipe_operation)
+		{
+			execvp(parent_command[0], parent_command);
+			perror(strcat(file_path_parent, "permission error"));
+		}
+		else
+		{
+			int fd[2];
+
+			if (pipe(fd) == -1)
+			{
+				perror("Internal failure!");
+				return 1;
+			}
+
+			int pid2 = fork();
+
+			if (pid2 == 0)
+			{
+				close(1);
+				dup(fd[1]);
+				close(fd[0]);
+				execvp(child_command[0], child_command);
+			}
+
+			else
+			{
+				wait(NULL);
+				close(0);
+				dup(fd[0]);
+				close(fd[1]);
+				execvp(parent_command[0], parent_command);
+			}
+		}
+		
 	}
 	else
 	{
