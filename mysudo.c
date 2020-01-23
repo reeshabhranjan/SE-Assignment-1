@@ -42,7 +42,8 @@ void print_restoring_euid()
 void print_input_instructions()
 {
 	printf("Please give input as follows:\n");
-	printf("./mysudo [username_to_run_as] [path/to/command --with-arguments]\n");	
+	printf("./mysudo -u [username_to_run_as] [path/to/command --with-arguments]\n");
+	printf("Leave the -u flag to run as root by default.\n");	
 }
 
 // to safely return on termination request
@@ -54,17 +55,24 @@ void sigint_handler(int signal_number)
 	exit(EXIT_SUCCESS);
 }
 
-void extract_commands(int argc, char** argv, char*** command1, char*** command2)
+int strfind(char** hay, int n, char* needle)
 {
-    int pipe_position = -1;
-    for (int i = 0; i < argc; i++)
-    {
-        if (strcmp(argv[i], "|") == 0)
-        {
-            pipe_position = i;
-            break;
-        }
-    }
+	int position = -1;
+	for (int i = 0; i < n; i++)
+	{
+		if (strcmp(hay[i], needle) == 0)
+		{
+			position = i;
+			break;
+		}
+	}
+	return position;
+}
+
+void extract_commands(int argc, char** argv, char*** command1, char*** command2, int flag_offset)
+{
+
+	int pipe_position = strfind(argv, argc, "|");
 
 	// setting up command1 argument array
 
@@ -76,12 +84,13 @@ void extract_commands(int argc, char** argv, char*** command1, char*** command2)
 	else
 	{
 		// TODO handle this if -u flag is provided
-		*command1 = (char **)(malloc(sizeof(char*) * (pipe_position - 1)));
-		for (int i = 2; i < pipe_position; i++)
+		int command_offset = flag_offset ? flag_offset + 2 : 1;
+		*command1 = (char **)(malloc(sizeof(char*) * (pipe_position - command_offset + 1)));
+		for (int i = command_offset; i < pipe_position; i++)
 		{
-			*(*command1 + i - 2) = strdup(argv[i]);
+			*(*command1 + i - command_offset) = strdup(argv[i]);
 		}
-		*(*command1 + pipe_position - 2) = NULL;
+		*(*command1 + pipe_position - command_offset) = NULL;
 	}
 
 	// setting up command2 argument array
@@ -104,16 +113,30 @@ void extract_commands(int argc, char** argv, char*** command1, char*** command2)
 
 int main(int argc, char** argv)
 {
+	// register the signal handler for SIGINT
 	signal(SIGINT, sigint_handler);
+
+	// calculate offset due to presence of flags
+	int flag_offset = strfind(argv, argc, "-u");
+
+	flag_offset = flag_offset == -1 ? 0 : flag_offset;
+
+	if (flag_offset > 1)
+	{
+		printf("Please enter commands correctly!\n");
+		print_input_instructions();
+		return 1;
+	}
+
 	// checking argument count
-	if (argc <= 2) // because argc can be 0 in some cases
+	if (argc <= (2 + flag_offset)) // because argc can be 0 in some cases
 	{
 		print_input_instructions();
 		return 1;
 	}
 
 	// check existence of username
-	char *username = argv[1]; // assuming argv[1] contains username
+	char* username = flag_offset ? argv[2] : "root";
 	struct passwd *passwd_entry = getpwnam(username);
 	
 	if (passwd_entry == NULL)
@@ -128,11 +151,11 @@ int main(int argc, char** argv)
 	// extracting commands if pipeline is present: ./mysudo reeshabh command1 | command2
 	char** child_command = NULL; 
 	char** parent_command = NULL;
-	extract_commands(argc, argv, &child_command, &parent_command);
+	extract_commands(argc, argv, &child_command, &parent_command, flag_offset);
 
 	int pipe_operation = child_command != NULL;
 
-	printf("parent_command: %d\n", (parent_command == NULL));
+	// printf("parent_command: %d\n", (parent_command == NULL));
 
 	// checking existence of file
 	char *file_path_parent = parent_command[0]; // assuming argv[2] contains path
