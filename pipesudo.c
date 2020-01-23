@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 
     char** command1_args = (char **)(malloc(sizeof(char*) * (pipe_position + 1)));
     char** command2_args = (char **)(malloc(sizeof(char*) * (argc - pipe_position)));
-    for (int i = 0; i < pipe_position; i++)
+    for (int i = 1; i < pipe_position; i++)
     {
         command1_args[i] = strdup(argv[i]);
     }
