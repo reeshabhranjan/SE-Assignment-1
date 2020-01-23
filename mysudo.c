@@ -77,7 +77,7 @@ void extract_commands(int argc, char** argv, char** command1, char** command2)
 	{
 		// TODO handle this if -u flag is provided
 		command1 = (char **)(malloc(sizeof(char*) * (pipe_position - 1)));
-		for (int i = 2; i < pipe_position - 1; i++)
+		for (int i = 2; i < pipe_position; i++)
 		{
 			command1[i - 2] = strdup(argv[i]);
 		}
@@ -88,7 +88,7 @@ void extract_commands(int argc, char** argv, char** command1, char** command2)
 
 	if (pipe_position == -1)
 	{
-		command2 = argv;
+		command2 = argv + 2;
 	}
 
 	else
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 
 	if (pipe_operation)
 	{
-		if (!file_path_child)
+		if (!file_exists_child)
 		{
 			printf("Cannot find file_path: \"%s\" Please check your input.\n", file_path_child);
 			print_input_instructions();
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 
 		int allowed = 0;
 
-		// if running as owner but no execute permissions
+		// if running as owner but no execute/write permissions
 		if (file_owner_uid_parent == uid_sudo_user)
 		{
 			if (!file_exec_permission_owner_parent || !file_write_permission_owner_parent)
@@ -206,7 +206,7 @@ int main(int argc, char** argv)
 			}
 		}
 		
-		// if group member but no execute permissions
+		// if group member but no execute/write permissions
 		else if (group_member)
 		{
 			if (!file_exec_permission_group_parent || !file_write_permission_group_parent)
@@ -216,15 +216,12 @@ int main(int argc, char** argv)
 			}
 		}
 
-		// if no others' execute permissions
+		// if no others' execute/write permissions
 		else if (!file_exec_permission_other_parent || !file_write_permission_other_parent)
 		{
 			printf("Other users do not have execute permissions or no write permissions!\n");
 			return 1;
 		}
-
-		// check write permissions
-
 	}
 
 	// getting information about the caller
