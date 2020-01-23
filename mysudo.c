@@ -79,9 +79,9 @@ void extract_commands(int argc, char** argv, char*** command1, char*** command2)
 		*command1 = (char **)(malloc(sizeof(char*) * (pipe_position - 1)));
 		for (int i = 2; i < pipe_position; i++)
 		{
-			*command1[i - 2] = strdup(argv[i]);
+			*(*command1 + i - 2) = strdup(argv[i]);
 		}
-		*command1[pipe_position - 2] = NULL;
+		*(*command1 + pipe_position - 2) = NULL;
 	}
 
 	// setting up command2 argument array
@@ -96,9 +96,9 @@ void extract_commands(int argc, char** argv, char*** command1, char*** command2)
 		*command2 = (char **)(malloc(sizeof(char*) * (argc - pipe_position)));
 		for (int i = pipe_position + 1; i < argc; i++)
 		{
-			*command2[i - pipe_position - 1] = strdup(argv[i]);
+			*(*command2 + i - pipe_position - 1) = strdup(argv[i]);
 		}
-		*command2[argc - pipe_position - 1] = NULL;
+		*(*command2 + argc - pipe_position - 1) = NULL;
 	}
 }
 
