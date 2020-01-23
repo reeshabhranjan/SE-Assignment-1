@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
     if (pipe(fd) == -1)
     {
-        perror("Internal failure");
+        perror("Internal failure!");
     }
 
     if (fork() == 0)
