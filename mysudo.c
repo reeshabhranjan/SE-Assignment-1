@@ -1,8 +1,8 @@
 
 /*
-Author: Reeshabh Kumar Ranjan
-Roll number: 2017086
-Course: CSE-352: Security Engineering
+	Author: Reeshabh Kumar Ranjan
+	Roll number: 2017086
+	Course: CSE-352: Security Engineering
 */
 
 #include<stdio.h>
@@ -18,6 +18,8 @@ Course: CSE-352: Security Engineering
 #include<stdlib.h>
 #include<limits.h>
 #include<signal.h>
+
+#define GROUP_COUNT_LIMIT 65536
 
 int ruid_caller;
 int euid_caller;
@@ -52,6 +54,54 @@ void sigint_handler(int signal_number)
 	exit(EXIT_SUCCESS);
 }
 
+void extract_commands(int argc, char** argv, char** command1, char** command2)
+{
+    int pipe_position = -1;
+    for (int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "|") == 0)
+        {
+            pipe_position = i;
+            break;
+        }
+    }
+
+	// setting up command1 argument array
+
+	if (pipe_position == -1)
+	{
+		command1 = NULL;
+	}
+
+	else
+	{
+		// TODO handle this if -u flag is provided
+		command1 = (char **)(malloc(sizeof(char*) * (pipe_position - 1)));
+		for (int i = 2; i < pipe_position - 1; i++)
+		{
+			command1[i - 2] = strdup(argv[i]);
+		}
+		command1[pipe_position - 2] = NULL;
+	}
+
+	// setting up command2 argument array
+
+	if (pipe_position == -1)
+	{
+		command2 = argv;
+	}
+
+	else
+	{
+		command2 = (char **)(malloc(sizeof(char*) * (argc - pipe_position)));
+		for (int i = pipe_position + 1; i < argc; i++)
+		{
+			command2[i - pipe_position - 1] = strdup(argv[i]);
+		}
+		command2[argc - pipe_position - 1] = NULL;
+	}
+}
+
 int main(int argc, char** argv)
 {
 	signal(SIGINT, sigint_handler);
@@ -75,15 +125,98 @@ int main(int argc, char** argv)
 
 	int uid_requested = passwd_entry -> pw_uid;
 
-	// checking existence of file
-	char *file_path = argv[2]; // assuming argv[2] contains path
+	// extracting commands if pipeline is present: ./mysudo reeshabh command1 | command2
+	char** child_command; 
+	char** parent_command;
+	extract_commands(argc, argv, child_command, parent_command);
 
-	int file_exists = access(file_path, F_OK) + 1; // 1 for exists and 0 otherwise
-	if (!file_exists)
+	int pipe_operation = child_command != NULL;
+
+	// checking existence of file
+	char *file_path_parent = parent_command[0]; // assuming argv[2] contains path
+	char *file_path_child = child_command == NULL? NULL : child_command[0]; // assuming argv[2] contains path
+
+	int file_exists_parent = access(file_path_parent, F_OK) + 1; // 1 for exists and 0 otherwise
+	int file_exists_child = file_path_child != NULL && (access(file_path_child, F_OK) + 1); // 1 for exists and 0 otherwise
+	
+	
+	if (!file_exists_parent)
 	{
-		printf("Cannot find file_path. Please check your input.\n");
+		printf("Cannot find file_path: \"%s\" Please check your input.\n", file_path_parent);
 		print_input_instructions();
 		return 0;	
+	}
+
+	if (pipe_operation)
+	{
+		if (!file_path_child)
+		{
+			printf("Cannot find file_path: \"%s\" Please check your input.\n", file_path_child);
+			print_input_instructions();
+			return 0;
+		}
+	}
+
+	// manually check permissions for parent command if pipe-command
+	if (pipe_operation)
+	{
+		// get information about file
+		struct stat st;
+		stat(file_path_parent, &st);
+		int file_exec_permission_owner_parent = st.st_mode & S_IXUSR;
+		int file_exec_permission_group_parent = st.st_mode & S_IXGRP;
+		int file_exec_permission_other_parent = st.st_mode & S_IXOTH;
+		int file_group_id_parent = st.st_gid;
+		int file_owner_uid_parent = st.st_uid;
+
+		// get information about users
+		int uid_terminal_user = getuid();
+		int gid_terminal_user = getgid();
+		int uid_sudo_user = uid_requested;
+		int gid_sudo_user = getpwuid(uid_sudo_user) -> pw_gid;
+
+		// obtain the group-membership of the requested user
+		int group_count = GROUP_COUNT_LIMIT;
+		gid_t groups[GROUP_COUNT_LIMIT];
+		int gid_requested = gid_sudo_user;
+		getgrouplist(username, gid_requested, groups, &group_count);
+		int group_member = 0;
+
+		for (int i = 0; i < group_count; i++)
+		{
+			if (file_group_id_parent == groups[i])
+			{
+				group_member = 1;
+				break;
+			}
+		}
+
+		int allowed = 0;
+
+		// if running as owner but no execute permissions
+		if (file_owner_uid_parent == uid_sudo_user)
+		{
+			if (!file_exec_permission_owner_parent)
+			{
+				printf("Requested user is the owner, but no execute permissions!\n");
+				return 1;
+			}
+		}
+
+		else if (group_member)
+		{
+			if (!file_exec_permission_group_parent)
+			{
+				printf("Requested user is in the group, but group has not execute permissions!\n");
+				return 1;
+			}
+		}
+
+		else if (!file_exec_permission_other_parent)
+		{
+			printf("Other users do not have execute permissions!\n");
+			return 1;
+		}
 	}
 
 	// getting information about the caller
@@ -97,8 +230,8 @@ int main(int argc, char** argv)
 
 	if (pid == 0) // child process
 	{
-		execvp(file_path, argv + 2);
-		perror(strcat(file_path, "permission error"));
+		execvp(file_path_parent, argv + 2);
+		perror(strcat(file_path_parent, "permission error"));
 	}
 	else
 	{
@@ -106,7 +239,7 @@ int main(int argc, char** argv)
 		wait(&status);
 		seteuid(ruid_caller);
 		print_restoring_euid();
-		printf("The program: %s ended with return code: %d\n", file_path, status);
+		printf("The program: %s ended with return code: %d\n", file_path_parent, status);
 	}
 	return 0;
 }

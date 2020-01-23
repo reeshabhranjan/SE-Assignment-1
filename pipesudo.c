@@ -2,6 +2,8 @@
 #include<string.h>
 #include<stdlib.h>
 #include<unistd.h>
+#include<sys/wait.h>
+#include<fcntl.h>
 
 int main(int argc, char **argv)
 {
@@ -70,6 +72,7 @@ int main(int argc, char **argv)
     {
         // close stdin, close writing end of the pipe
         // and duplicate the reading end of the pipe
+        wait(NULL);
         close(0);
         dup(fd[0]);
         close(fd[1]);
