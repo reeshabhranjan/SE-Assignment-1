@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     command1_args[pipe_position - 1] = NULL;
     command2_args[argc - pipe_position - 1] = NULL;
 
-    for (int i = 0; i < pipe_position + 1; i++)
+    for (int i = 0; i < pipe_position; i++)
     {
         printf("|%s|", command1_args[i]);
     }
