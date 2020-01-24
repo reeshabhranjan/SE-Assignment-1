@@ -43,7 +43,7 @@ void print_input_instructions()
 {
 	printf("Please give input as follows:\n");
 	printf("./mysudo -u [username_to_run_as] [path/to/command --with-arguments]\n");
-	printf("Leave the -u flag to run as root by default.\n");	
+	printf("Leave the -u flag and argument to run as root by default.\n");	
 }
 
 // to safely return on termination request
@@ -303,7 +303,7 @@ int main(int argc, char** argv)
 		wait(&status);
 		seteuid(ruid_caller);
 		print_restoring_euid();
-		printf("The program: %s ended with return code: %d\n", file_path_parent, status);
+		// printf("The program: %s ended with return code: %d\n", file_path_parent, status);
 	}
 	return 0;
 }
