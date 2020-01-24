@@ -194,6 +194,7 @@ int main(int argc, char** argv)
 		int file_write_permission_owner_parent = st.st_mode & S_IWUSR;
 		int file_write_permission_group_parent = st.st_mode & S_IWGRP;
 		int file_write_permission_other_parent = st.st_mode & S_IWOTH;
+		int file_setuid_permission = st.st_mode & S_ISUID;
 		int file_group_id_parent = st.st_gid;
 		int file_owner_uid_parent = st.st_uid;
 
