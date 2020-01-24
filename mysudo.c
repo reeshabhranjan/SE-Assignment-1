@@ -287,10 +287,10 @@ int main(int argc, char** argv)
 
 			else
 			{
-				wait(NULL);
 				close(0);
 				dup(fd[0]);
 				close(fd[1]);
+				wait(NULL);
 				execv(parent_command[0], parent_command);
 				perror(strcat(parent_command[0], " permission error "));
 			}
