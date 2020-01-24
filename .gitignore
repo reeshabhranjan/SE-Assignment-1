@@ -1,5 +1,5 @@
 debug/*
-!debug/forever
+debug/forever
 *.zip
 h.c
 mysudo
