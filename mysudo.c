@@ -83,7 +83,7 @@ void extract_commands(int argc, char** argv, char*** command1, char*** command2,
 
 	else
 	{
-		// TODO handle this if -u flag is provided
+		// customised if -u flag is provided
 		int command_offset = flag_offset ? flag_offset + 2 : 1;
 		*command1 = (char **)(malloc(sizeof(char*) * (pipe_position - command_offset + 1)));
 		for (int i = command_offset; i < pipe_position; i++)
@@ -262,8 +262,8 @@ int main(int argc, char** argv)
 	{
 		if (!pipe_operation)
 		{
-			execvp(parent_command[0], parent_command);
-			perror(strcat(file_path_parent, "permission error"));
+			execv(parent_command[0], parent_command);
+			perror(strcat(file_path_parent, " permission error"));
 		}
 		else
 		{
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
 				close(1);
 				dup(fd[1]);
 				close(fd[0]);
-				execvp(child_command[0], child_command);
+				execv(child_command[0], child_command);
 			}
 
 			else
@@ -291,7 +291,7 @@ int main(int argc, char** argv)
 				close(0);
 				dup(fd[0]);
 				close(fd[1]);
-				execvp(parent_command[0], parent_command);
+				execv(parent_command[0], parent_command);
 			}
 		}
 		
