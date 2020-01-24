@@ -224,7 +224,7 @@ int main(int argc, char** argv)
 		{
 			if (!file_exec_permission_owner_parent || !file_write_permission_owner_parent)
 			{
-				printf("Requested user is the owner, but no execute permissions or no write permissions!\n");
+				printf("Requested user is the owner, but either has no execute permissions or no write permissions!\n");
 				return 1;
 			}
 		}
@@ -234,7 +234,7 @@ int main(int argc, char** argv)
 		{
 			if (!file_exec_permission_group_parent || !file_write_permission_group_parent)
 			{
-				printf("Requested user is in the group, but group has not execute permissions or no write permissions!\n");
+				printf("Requested user is in the group, but group either has no execute permissions or no write permissions!\n");
 				return 1;
 			}
 		}
@@ -242,7 +242,7 @@ int main(int argc, char** argv)
 		// if no others' execute/write permissions
 		else if (!file_exec_permission_other_parent || !file_write_permission_other_parent)
 		{
-			printf("Other users do not have execute permissions or no write permissions!\n");
+			printf("Other users either have no execute permissions or no write permissions!\n");
 			return 1;
 		}
 	}
@@ -261,7 +261,7 @@ int main(int argc, char** argv)
 		if (!pipe_operation)
 		{
 			execv(parent_command[0], parent_command);
-			perror(strcat(file_path_parent, " permission error"));
+			perror(strcat(file_path_parent, " permission error "));
 		}
 		else
 		{
@@ -281,6 +281,7 @@ int main(int argc, char** argv)
 				dup(fd[1]);
 				close(fd[0]);
 				execv(child_command[0], child_command);
+				perror(strcat(child_command[0], " permission error "));
 			}
 
 			else
@@ -290,6 +291,7 @@ int main(int argc, char** argv)
 				dup(fd[0]);
 				close(fd[1]);
 				execv(parent_command[0], parent_command);
+				perror(strcat(parent_command[0], " permission error "));
 			}
 		}
 		
