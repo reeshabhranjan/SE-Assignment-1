@@ -129,7 +129,7 @@ int main(int argc, char** argv)
 	}
 
 	// checking argument count
-	if (argc < (1 + 1 + 2 * flag_offset)) // because argc can be 0 in some cases
+	if (argc < (1 + 1 + 2 * flag_offset)) // 1 for "./mysudo", 1 for a command, and 2 * flag_offset for username
 	{
 		print_input_instructions();
 		return 1;
@@ -218,9 +218,7 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
-
-		int allowed = 0;
-
+		
 		// if running as owner but no execute/write permissions
 		if (file_owner_uid_parent == uid_sudo_user)
 		{

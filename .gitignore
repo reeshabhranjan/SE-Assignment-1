@@ -1,3 +1,7 @@
 debug/*
 !debug/forever
 *.zip
+h.c
+mysudo
+pipesudo
+h
