@@ -97,7 +97,7 @@ void extract_commands(int argc, char** argv, char*** command1, char*** command2,
 
 	if (pipe_position == -1)
 	{
-		*command2 = argv + 2;
+		*command2 = argv + (flag_offset ? flag_offset + 2 : 1);
 	}
 
 	else
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
 	}
 
 	// checking argument count
-	if (argc <= (2 + flag_offset)) // because argc can be 0 in some cases
+	if (argc < (1 + 1 + 2 * flag_offset)) // because argc can be 0 in some cases
 	{
 		print_input_instructions();
 		return 1;
